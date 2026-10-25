@@ -1,0 +1,30 @@
+name: ClutterIQ Website Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  html-check:
+    name: Check website HTML
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project code
+        uses: actions/checkout@v4
+
+      - name: Check index.html exists
+        run: |
+          test -f index.html
+          echo "ClutterIQ index.html found successfully."
+
+      - name: Check basic HTML structure
+        run: |
+          grep -qi '<html' index.html
+          grep -qi '</html>' index.html
+          grep -qi '<head' index.html
+          grep -qi '<body' index.html
+          echo "Basic HTML structure check passed."
