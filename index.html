@@ -826,6 +826,63 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+/* Storage Health Badge */
+.storage-health {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: 14px;
+  background: rgba(34, 211, 238, 0.06);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.storage-health:hover {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.6);
+}
+
+.health-indicator {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.storage-health strong,
+.storage-health span:not(.health-indicator) {
+  display: block;
+}
+
+.storage-health strong {
+  margin-bottom: 4px;
+  color: #e2e8f0;
+}
+
+.storage-health div span {
+  color: #aab6cf;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.storage-health.healthy .health-indicator {
+  background: #34d399;
+  color: #34d399;
+}
+
+.storage-health.attention .health-indicator {
+  background: #fbbf24;
+  color: #fbbf24;
+}
+
+.storage-health.cluttered .health-indicator {
+  background: #fb7185;
+  color: #fb7185;
+}
 
 </style>
 </head>
@@ -875,6 +932,13 @@ textarea:focus-visible {
             <span>Duplicate copies</span>
           </div>
         </div>
+        <div class="storage-health" id="storageHealth">
+  <span class="health-indicator"></span>
+  <div>
+    <strong id="healthStatus">Waiting for scan</strong>
+    <span id="healthMessage">Scan your files to check storage health.</span>
+  </div>
+</div>
       </div>
     </div>
   </section>
@@ -1177,6 +1241,40 @@ typeSelect.innerHTML = '<option value="all">All file types</option>';
 
   $("insightSavings").textContent = bytes(saved);
   $("insightDuplicates").textContent = duplicateCopies;
+  const healthBadge = $("storageHealth");
+const healthStatus = $("healthStatus");
+const healthMessage = $("healthMessage");
+
+const duplicateRatio = files.length
+  ? duplicateCopies / files.length
+  : 0;
+
+healthBadge.classList.remove(
+  "healthy",
+  "attention",
+  "cluttered"
+);
+
+if (files.length === 0) {
+  healthStatus.textContent = "No files found";
+  healthMessage.textContent =
+    "Choose a folder containing files to check its storage health.";
+} else if (duplicateRatio >= 0.20) {
+  healthBadge.classList.add("cluttered");
+  healthStatus.textContent = "Cluttered";
+  healthMessage.textContent =
+    "Many duplicate copies detected. Review your cleanup recommendations.";
+} else if (duplicateCopies > 0 || duplicateRatio >= 0.05) {
+  healthBadge.classList.add("attention");
+  healthStatus.textContent = "Needs Attention";
+  healthMessage.textContent =
+    "Some duplicate files were detected. Review the suggested actions.";
+} else {
+  healthBadge.classList.add("healthy");
+  healthStatus.textContent = "Healthy";
+  healthMessage.textContent =
+    "Few or no duplicate copies detected. Your folder looks tidy.";
+}
 
 renderRecommendations();
 
