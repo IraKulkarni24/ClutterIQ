@@ -676,6 +676,157 @@ header h1 {
 #filterCount {
   margin-bottom: 10px;
 }
+
+/* ===== CLUTTERIQ: BOLD FUTURISTIC VISUAL UPGRADE ===== */
+
+:root {
+  --neon-purple: #a855f7;
+  --neon-cyan: #22d3ee;
+  --neon-pink: #f472b6;
+  --glass-surface: rgba(20, 24, 48, 0.76);
+}
+
+/* Animated ambient background lighting */
+body {
+  position: relative;
+  isolation: isolate;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -30%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at 15% 20%,
+      rgba(168, 85, 247, 0.20),
+      transparent 42%
+    ),
+    radial-gradient(
+      ellipse at 85% 35%,
+      rgba(34, 211, 238, 0.15),
+      transparent 40%
+    ),
+    radial-gradient(
+      ellipse at 50% 90%,
+      rgba(244, 114, 182, 0.11),
+      transparent 42%
+    );
+  background-size: 150% 150%;
+  animation: ambientDrift 14s ease-in-out infinite alternate;
+}
+
+@keyframes ambientDrift {
+  0% {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+    background-position: 0% 0%;
+  }
+  50% {
+    transform: translate3d(2%, 1%, 0) scale(1.04);
+    background-position: 100% 50%;
+  }
+  100% {
+    transform: translate3d(-1%, 2%, 0) scale(1.08);
+    background-position: 50% 100%;
+  }
+}
+
+/* Glassmorphism panels */
+.panel {
+  background: var(--glass-surface);
+  border: 1px solid rgba(168, 85, 247, 0.24);
+  border-radius: 18px;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    transform 260ms ease,
+    border-color 260ms ease,
+    box-shadow 260ms ease;
+}
+
+/* Neon hover interaction */
+.panel:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow:
+    0 12px 36px rgba(34, 211, 238, 0.09),
+    0 0 22px rgba(168, 85, 247, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Recommendation cards */
+.item {
+  border-radius: 12px;
+  transition:
+    transform 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+  animation: cardReveal 450ms ease both;
+}
+
+.item:hover {
+  transform: translateX(5px) scale(1.005);
+  background: rgba(168, 85, 247, 0.09);
+  box-shadow: 0 5px 22px rgba(34, 211, 238, 0.10);
+}
+
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glowing interactive buttons */
+button {
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    filter 200ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+  box-shadow:
+    0 0 18px rgba(34, 211, 238, 0.22),
+    0 0 28px rgba(168, 85, 247, 0.15);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Neon focus states for interactive controls */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 3px;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.16);
+}
+
+/* Respect reduced-motion accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -796,6 +947,29 @@ const $ = id => document.getElementById(id);
 let report = [];
 let allRecommendations = [];
 
+
+function animateNumber(element, target, duration = 850) {
+  if (!element) return;
+
+  const start = performance.now();
+  const from = 0;
+
+  function update(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = Math.round(
+      from + (target - from) * eased
+    ).toLocaleString();
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+
 function bytes(n) {
   if (!n) return "0 B";
   const units = ["B","KB","MB","GB","TB"];
@@ -902,10 +1076,10 @@ async function scan(files) {
 
   const total = files.reduce((n, f) => n + f.size, 0);
 
-  $("total").textContent = files.length;
-  $("size").textContent = bytes(total);
-  $("duplicates").textContent = duplicateCopies;
-  $("savings").textContent = bytes(saved);
+  animateNumber($("total"), files.length);
+$("size").textContent = bytes(total);
+animateNumber($("duplicates"), duplicateCopies);
+$("savings").textContent = bytes(saved);
 
   $("types").innerHTML = Object.entries(typeCounts)
     .sort((a, b) => b[1] - a[1])
