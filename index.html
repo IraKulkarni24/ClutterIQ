@@ -1,0 +1,1017 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClutterIQ | Smart File Cleanup</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #0b1020;
+  --surface: #121a2e;
+  --surface2: #18233b;
+  --border: #293653;
+  --text: #eef2ff;
+  --muted: #9ba9c6;
+  --purple: #9b8cff;
+  --cyan: #61e7e0;
+  --green: #63e6a5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', Arial, sans-serif;
+  background:
+    radial-gradient(ellipse at 15% 0%, #20265a 0, transparent 38%),
+    radial-gradient(ellipse at 90% 20%, #192747 0, transparent 32%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+header {
+  position: relative;
+  overflow: hidden;
+  padding: 42px 7% 38px;
+  background: linear-gradient(120deg, #171b3b, #34246d 58%, #263d76);
+  border-bottom: 1px solid #51478c;
+}
+
+header::after {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: 8%;
+  top: -150px;
+  border-radius: 50%;
+  background: #a49aff;
+  filter: blur(100px);
+  opacity: .28;
+  pointer-events: none;
+}
+
+header h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+
+header p {
+  color: #d1d7f5;
+  margin: 8px 0 0;
+  font-size: 15px;
+}
+
+main {
+  max-width: 1180px;
+  margin: 30px auto 60px;
+  padding: 0 22px;
+}
+
+.notice {
+  background: linear-gradient(110deg, #1d2945, #25264d);
+  border: 1px solid #414b78;
+  border-left: 4px solid var(--cyan);
+  padding: 17px 20px;
+  border-radius: 13px;
+  margin-bottom: 22px;
+  color: #e1e9ff;
+  font-size: 14px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.card,
+.panel {
+  background: linear-gradient(145deg, #151e33, #10182a);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 12px 35px #00000018;
+}
+
+.card {
+  padding: 22px;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s, border-color .2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: #7770cf;
+}
+
+.label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.value {
+  font-size: clamp(23px, 2.5vw, 32px);
+  font-weight: 800;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+  color: white;
+  letter-spacing: -1px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.panel {
+  padding: 24px;
+  margin-bottom: 18px;
+  min-width: 0;
+}
+
+.columns .panel {
+  margin-bottom: 0;
+}
+
+.panel h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+button,
+.pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #7667f5, #9c70f5);
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 12px;
+  margin: 5px 5px 5px 0;
+  transition: transform .2s, filter .2s;
+}
+
+button:hover,
+.pick:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+
+button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondary {
+  background: #202c47;
+  color: #dfe5ff;
+  border-color: #384665;
+}
+
+input[type=file] {
+  display: none;
+}
+
+#status {
+  font-size: 12px;
+  color: var(--cyan);
+  margin-top: 14px;
+}
+
+.bar {
+  height: 7px;
+  background: #26324c;
+  border-radius: 20px;
+  margin-top: 17px;
+  overflow: hidden;
+}
+
+#progress {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #786bff, #61e7e0);
+  border-radius: 20px;
+  transition: width .3s;
+}
+
+.item {
+  background: #141e32;
+  border: 1px solid #293753;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 10px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  transition: background .2s, border-color .2s;
+}
+
+.item:hover {
+  background: #1a2740;
+  border-color: #59678c;
+}
+
+.item b {
+  color: #f0f3ff;
+  font-weight: 700;
+}
+
+.item small {
+  display: block;
+  color: #aab7d2;
+  margin-top: 7px;
+  line-height: 1.6;
+}
+
+.tag {
+  float: right;
+  background: #302b55;
+  color: #d4caff;
+  padding: 5px 9px;
+  border: 1px solid #4c4380;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 8px;
+  max-width: 55%;
+  text-align: center;
+}
+
+/* Smart recommendations */
+#recommendationList .item {
+  padding: 17px;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #18243b, #131c30);
+  margin-top: 12px;
+}
+
+#recommendationList .item small:last-child {
+  color: #c0cbea;
+  border-top: 1px solid #2b3853;
+  padding-top: 9px;
+  margin-top: 10px;
+}
+
+#recommendationList .item[style*="99"] {
+  border-left-color: var(--purple) !important;
+}
+
+#types .item,
+#duplicateList .item,
+#largeList .item {
+  margin-top: 9px;
+}
+
+#export {
+  margin-top: 8px;
+}
+
+::selection {
+  background: #7968e8;
+  color: white;
+}
+
+button:focus-visible,
+.pick:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+@media (max-width: 850px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 30px 22px;
+  }
+
+  main {
+    padding: 0 13px;
+    margin-top: 18px;
+  }
+
+  .metrics {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .panel {
+    padding: 17px;
+  }
+
+  .tag {
+    float: none;
+    display: inline-block;
+    margin: 7px 0 0;
+    max-width: 100%;
+  }
+}
+/* ClutterIQ final contrast and polish fix */
+html,
+body {
+  background-color: #0b1020 !important;
+  color: #eef2ff !important;
+}
+
+main {
+  background: transparent !important;
+  color: #eef2ff !important;
+}
+
+main h1,
+main h2,
+main h3,
+main h4,
+main p,
+main label,
+main strong,
+main b,
+header h1 {
+  color: #eef2ff !important;
+}
+
+header h1 {
+  text-shadow: 0 3px 24px #a99bff35;
+}
+
+main .label,
+main .muted,
+main .item small {
+  color: #aab8d3 !important;
+}
+
+main .card,
+main .panel {
+  background: linear-gradient(145deg, #17223a, #10182a) !important;
+  border: 1px solid #344363 !important;
+  color: #eef2ff !important;
+  box-shadow: 0 12px 35px #00000025;
+}
+
+main .item {
+  background: #19253d !important;
+  border-color: #354462 !important;
+  color: #eef2ff !important;
+}
+
+main .secondary {
+  background: #263451 !important;
+  color: #eef2ff !important;
+}
+
+main .tag {
+  color: #dcd5ff !important;
+  background: #302b55 !important;
+  border-color: #514783 !important;
+}
+
+main .notice {
+  color: #e7edff !important;
+  background: linear-gradient(110deg, #1c2945, #27254c) !important;
+}
+
+main button:not(:disabled) {
+  color: #ffffff !important;
+}
+
+main .bar {
+  background: #293651 !important;
+}
+
+#progress {
+  background: linear-gradient(90deg, #8b78ff, #61e7e0) !important;
+}
+
+/* ✨ ClutterIQ motion effects */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(139, 120, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 120, 255, 0.12);
+  }
+}
+
+@keyframes scanShimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+header {
+  animation: fadeUp 650ms ease-out both;
+}
+
+main > .notice {
+  animation: fadeUp 550ms ease-out 100ms both;
+}
+
+main .metrics .card {
+  animation: fadeUp 600ms ease-out both;
+}
+
+main .metrics .card:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+main .metrics .card:nth-child(3) {
+  animation-delay: 160ms;
+}
+
+main .metrics .card:nth-child(4) {
+  animation-delay: 240ms;
+}
+
+main .card,
+main .panel {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+main .card:hover,
+main .panel:hover {
+  transform: translateY(-3px);
+  border-color: #7669d9 !important;
+  box-shadow: 0 12px 35px rgba(102, 87, 230, 0.12);
+}
+
+main .item {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+main .item:hover {
+  transform: translateX(4px);
+  border-color: #8172ec !important;
+}
+
+#progress {
+  background-image: linear-gradient(
+    90deg,
+    #7968f5 0%,
+    #61e7e0 40%,
+    #b9a7ff 60%,
+    #7968f5 100%
+  ) !important;
+  background-size: 200% 100%;
+  animation: scanShimmer 3s linear infinite;
+}
+
+header h1 {
+  animation: softGlow 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Cleanup Priority Gauge */
+.insight-panel {
+  margin-top: 20px;
+  background: linear-gradient(125deg, #172441, #211d43) !important;
+  border-color: #4b4780 !important;
+}
+
+.insight-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.insight-content {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  padding: 16px 4px 8px;
+}
+
+.priority-ring {
+  width: 156px;
+  height: 156px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    #9b8cff 0%,
+    #61e7e0 var(--score),
+    #303a59 var(--score),
+    #303a59 100%
+  );
+  box-shadow: 0 0 30px #8e7cff22;
+  transition: background 600ms ease, transform 300ms ease;
+  animation: fadeUp 700ms ease both;
+}
+
+.priority-ring:hover {
+  transform: scale(1.04);
+}
+
+.priority-center {
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: #111a2d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.priority-center strong {
+  color: #ffffff;
+  font-size: 39px;
+  line-height: 1.1;
+}
+
+.priority-center span {
+  color: #aab8d3;
+  font-size: 12px;
+}
+
+.insight-details {
+  flex: 1;
+  min-width: 220px;
+}
+
+.insight-details h3 {
+  margin-bottom: 5px;
+}
+
+.insight-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.insight-stats > div {
+  flex: 1;
+  min-width: 125px;
+  padding: 13px;
+  background: #ffffff08;
+  border: 1px solid #394563;
+  border-radius: 12px;
+}
+
+.insight-stats strong,
+.insight-stats span {
+  display: block;
+}
+
+.insight-stats strong {
+  color: #61e7e0;
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+.insight-stats span {
+  color: #aab8d3;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+@media (max-width: 500px) {
+  .insight-content {
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .insight-details {
+    flex-basis: 100%;
+  }
+}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>🧹 ClutterIQ</h1>
+  <p>Smart File Cleanup Assistant — Find clutter. Reclaim space.</p>
+</header>
+<main>
+  <div class="notice">🔒 <b>Privacy first:</b> Files are analyzed in your browser. ClutterIQ never automatically deletes your files.</div>
+
+  <div class="metrics">
+    <div class="card"><div class="label">Files scanned</div><div class="value" id="total">0</div></div>
+    <div class="card"><div class="label">Total size</div><div class="value" id="size">0 B</div></div>
+    <div class="card"><div class="label">Duplicate copies</div><div class="value" id="duplicates">0</div></div>
+    <div class="card"><div class="label">Potential savings</div><div class="value" id="savings">0 B</div></div>
+  </div>
+  
+  <section class="panel insight-panel">
+    <div class="insight-heading">
+      <h3>⚡ Cleanup Priority</h3>
+      <span class="tag">LIVE ANALYSIS</span>
+    </div>
+
+    <div class="insight-content">
+      <div class="priority-ring" id="priorityRing"
+           style="--score: 0%">
+        <div class="priority-center">
+          <strong id="priorityScore">0</strong>
+          <span>/ 100</span>
+        </div>
+      </div>
+
+      <div class="insight-details">
+        <h3 id="priorityLabel">Ready to analyze</h3>
+        <p class="muted">
+          Your highest file cleanup recommendation score.
+        </p>
+
+        <div class="insight-stats">
+          <div>
+            <strong id="insightSavings">0 B</strong>
+            <span>Potential savings</span>
+          </div>
+          <div>
+            <strong id="insightDuplicates">0</strong>
+            <span>Duplicate copies</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <div class="columns">
+    <section class="panel">
+      <h3>📁 Scan your files</h3>
+      <p class="muted">Choose a folder to identify duplicate files, file types and large files.</p>
+      <label class="pick" for="folder">Choose folder</label>
+      <input id="folder" type="file" webkitdirectory multiple>
+      <button class="secondary" id="demo">Try sample demo</button>
+      <button class="secondary" id="reset">Reset</button>
+      <div class="bar"><div id="progress"></div></div>
+      <div id="status">Ready to scan.</div>
+    </section>
+
+    <section class="panel">
+      <h3>📊 File type breakdown</h3>
+      <div id="types" class="muted">Your file categories will appear here after scanning.</div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h3>🔍 Duplicate files</h3>
+    <p class="muted">Files are compared using SHA-256 hashes, which identify matching file contents.</p>
+    <div id="duplicateList" class="muted">No scan performed yet.</div>
+  </section>
+
+  
+ <section class="panel">
+   <h3>🧠 Smart Cleanup Recommendations</h3>
+   <p class="muted">
+     Files are ranked using duplicate detection and file size.
+     Review recommendations before making any changes.
+   </p>
+   <div id="recommendationList" class="muted">
+     Scan files to generate recommendations.
+   </div>
+ </section>
+
+  <section class="panel">
+    <h3>📦 Large files to review</h3>
+    <div id="largeList" class="muted">Large files will appear here after scanning.</div>
+  </section>
+
+  <section class="panel">
+    <h3>📄 Export report</h3>
+    <p class="muted">Download the scanned file list as a CSV report for your project demonstration.</p>
+    <button id="export" disabled>Download CSV report</button>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let report = [];
+
+function bytes(n) {
+  if (!n) return "0 B";
+  const units = ["B","KB","MB","GB","TB"];
+  const i = Math.min(Math.floor(Math.log(n)/Math.log(1024)),4);
+  return (n/1024**i).toFixed(i===0?0:2)+" "+units[i];
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function ext(name) {
+  const i=name.lastIndexOf(".");
+  return i>0?name.slice(i+1).toLowerCase():"No extension";
+}
+
+async function hashFile(file) {
+  const data=await file.arrayBuffer();
+  const digest=await crypto.subtle.digest("SHA-256",data);
+  return Array.from(new Uint8Array(digest))
+    .map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+
+async function scan(files) {
+  $("status").textContent = "Scanning files...";
+  $("progress").style.width = "0%";
+  $("export").disabled = true;
+
+  const buckets = new Map();
+  const sizeCounts = new Map();
+  const typeCounts = {};
+
+  files.forEach(f =>
+    sizeCounts.set(f.size, (sizeCounts.get(f.size) || 0) + 1)
+  );
+
+  let done = 0;
+
+  for (const file of files) {
+    const type = ext(file.name);
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
+
+    if (sizeCounts.get(file.size) > 1) {
+      try {
+        const hash = await hashFile(file);
+        if (!buckets.has(hash)) buckets.set(hash, []);
+        buckets.get(hash).push(file);
+      } catch (e) {}
+    }
+
+    done++;
+    $("progress").style.width =
+      (done / Math.max(files.length, 1) * 100) + "%";
+  }
+
+  const groups = [...buckets.entries()]
+    .filter(([hash, group]) => group.length > 1);
+
+  // Identify every file that belongs to a duplicate group.
+  const duplicateFiles = new Set();
+  groups.forEach(([hash, group]) => {
+    group.forEach(file => duplicateFiles.add(file));
+  });
+
+  const duplicateCopies = groups.reduce(
+    (n, [hash, group]) => n + group.length - 1, 0
+  );
+
+  const saved = groups.reduce(
+    (n, [hash, group]) =>
+      n + group.slice(1).reduce((sum, f) => sum + f.size, 0), 0
+  );
+
+  const total = files.reduce((n, f) => n + f.size, 0);
+
+  $("total").textContent = files.length;
+  $("size").textContent = bytes(total);
+  $("duplicates").textContent = duplicateCopies;
+  $("savings").textContent = bytes(saved);
+
+  $("types").innerHTML = Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) =>
+      `<div class="item"><b>${escapeHTML(type)}</b>
+      <span class="tag">${count} files</span>
+      <div style="clear:both"></div></div>`
+    ).join("") || "No files found.";
+
+  $("duplicateList").innerHTML = groups.length
+    ? groups.map(([hash, group], i) =>
+      `<div class="item"><b>Duplicate group ${i + 1}</b>
+      <span class="tag">${group.length} copies</span>
+      <div style="clear:both"></div>
+      ${group.map(f =>
+        `<small>📄 ${escapeHTML(f.name)} · ${bytes(f.size)}</small>`
+      ).join("")}
+      <small>SHA-256: ${hash.slice(0, 20)}…</small></div>`
+    ).join("")
+    : "No identical files detected.";
+
+  // Smart recommendation system: score files using simple rules.
+  const recommendations = files.map(file => {
+    const isDuplicate = duplicateFiles.has(file);
+    const isLarge = file.size >= 10 * 1024 * 1024;
+    let score = 0;
+    const reasons = [];
+
+    if (isDuplicate) {
+      score += 60;
+      reasons.push("Duplicate content detected");
+    }
+
+    if (isLarge) {
+      score += 40;
+      reasons.push("Large file (10 MB or more)");
+    }
+
+    let priority = "LOW PRIORITY";
+    let color = "#d1fae5";
+
+    if (score >= 100) {
+      priority = "HIGH PRIORITY";
+      color = "#fee2e2";
+    } else if (score >= 40) {
+      priority = "REVIEW";
+      color = "#fef3c7";
+    }
+
+    return {
+      name: file.name,
+      size: file.size,
+      score,
+      priority,
+      color,
+      reasons: reasons.length ? reasons.join(" · ") : "No obvious cleanup signal",
+action: isDuplicate
+  ? "Review duplicate copies and keep the file you need."
+  : isLarge
+    ? "Review whether you still need this large file."
+    : "No action needed right now."
+    };
+  });
+
+  // Show the highest-scoring files first.
+  recommendations.sort((a, b) => b.score - a.score);
+  
+  // Update the cleanup priority dashboard.
+  const topScore = recommendations.length
+    ? recommendations[0].score
+    : 0;
+
+  $("priorityRing").style.setProperty(
+    "--score",
+    `${topScore}%`
+  );
+
+  $("priorityScore").textContent = topScore;
+
+  $("priorityLabel").textContent =
+    topScore >= 100 ? "High cleanup priority" :
+    topScore >= 40 ? "Review recommended" :
+    "Looking good";
+
+  $("insightSavings").textContent = bytes(saved);
+  $("insightDuplicates").textContent = duplicateCopies;
+
+
+  $("recommendationList").innerHTML = recommendations.length
+    ? recommendations.map(file =>
+      `<div class="item" style="border-left:5px solid ${file.color}">
+        <b>${escapeHTML(file.name)}</b>
+        <span class="tag">${file.priority}</span>
+        <div style="clear:both"></div>
+        <small>Score: ${file.score}/100 · Size: ${bytes(file.size)}</small>
+        <small>${escapeHTML(file.reasons)}</small>
+        <small><b>Suggested action:</b> ${escapeHTML(file.action)}</small>
+      </div>`
+    ).join("")
+    : "No files found.";
+
+  const large = [...files]
+    .sort((a, b) => b.size - a.size)
+    .slice(0, 10);
+
+  $("largeList").innerHTML = large.length
+    ? large.map(f =>
+      `<div class="item"><b>${escapeHTML(f.name)}</b>
+      <span class="tag">${bytes(f.size)}</span>
+      <div style="clear:both"></div>
+      <small>${escapeHTML(f.webkitRelativePath || f.name)}</small>
+      </div>`
+    ).join("")
+    : "No files found.";
+
+  report = files.map(f => ({
+    name: f.name,
+    path: f.webkitRelativePath || f.name,
+    size: f.size,
+    type: ext(f.name)
+  }));
+
+  $("status").textContent =
+    `Scan complete! ${files.length} files analyzed. No files were changed.`;
+
+  $("export").disabled = false;
+}
+
+
+$("folder").addEventListener("change",e=>{
+  const files=Array.from(e.target.files||[]);
+  if(files.length) scan(files);
+});
+
+$("demo").addEventListener("click",()=>{
+  const samples=[
+    ["Notes.txt","Same notes content",0],
+    ["Notes-copy.txt","Same notes content",0],
+    ["Photo.jpg","Pretend photo content",0],
+    ["Project.txt","Project report content",0],
+    ["Project-backup.txt","Project report content",0],
+    ["Video.mp4","Pretend video content",0],
+    ["Todo.txt","Finish the ISE project",0]
+  ];
+  const files=samples.map(([name,content])=>{
+    const f=new File([content],name);
+    if(name==="Video.mp4") Object.defineProperty(f,"size",{value:24*1024*1024});
+    return f;
+  });
+  scan(files);
+});
+
+$("reset").addEventListener("click",()=>{
+  $("folder").value="";
+  $("total").textContent="0";
+  $("size").textContent="0 B";
+  $("duplicates").textContent="0";
+  $("savings").textContent="0 B";
+  $("progress").style.width="0%";
+  $("types").textContent="Your file categories will appear here after scanning.";
+  $("duplicateList").textContent="No scan performed yet.";
+  $("largeList").textContent="Large files will appear here after scanning.";
+  $("status").textContent="Ready to scan.";
+  $("export").disabled=true;
+  report=[];
+});
+
+$("export").addEventListener("click",()=>{
+  const rows=[["Name","Path","Size in bytes","Extension"],
+    ...report.map(f=>[f.name,f.path,f.size,f.type])];
+  const csv=rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const url=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  const a=document.createElement("a");
+  a.href=url;a.download="clutteriq-report.csv";a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
