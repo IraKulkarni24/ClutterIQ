@@ -283,3 +283,35 @@ The final submission will include the completed website, its source code, a mean
 **Repository:** https://github.com/IraKulkarni24/ClutterIQ  
 **Project type:** Third-year engineering mini-project  
 **Subject:** DevOps and Kubernetes — ISE–2
+
+## DevOps Tool Integration — GitHub Actions
+
+### 1. Introduction
+GitHub Actions is used to automate basic validation checks for the ClutterIQ website whenever code changes are pushed to GitHub.
+
+### 2. Workflow Configuration
+- **Tool:** GitHub Actions
+- **Workflow name:** ClutterIQ Website Check
+- **Configuration file:** `.github/workflows/main.yml`
+- **Branch:** `main`
+
+### 3. Integration Steps
+1. Open the ClutterIQ repository on GitHub.
+2. Navigate to the Actions tab.
+3. Create a workflow file at `.github/workflows/main.yml`.
+4. Configure the workflow to run on pushes to `main`, pull requests targeting `main`, and manual execution.
+5. Add steps to check that `index.html` exists and contains basic HTML structure markers.
+6. Commit the workflow file to the repository.
+7. Open the Actions tab and verify the workflow execution result.
+
+### 4. Workflow Results
+The workflow executed successfully, as indicated by the green success status on GitHub Actions.
+
+### 5. Evidence
+The following screenshots document the integration:
+- `github-actions-success.png` — Successful workflow run.
+- `github-actions-steps.png` — Workflow execution steps.
+- `github-actions-config.png` — Workflow configuration.
+
+### 6. Conclusion
+GitHub Actions was successfully integrated into ClutterIQ to automate basic website checks. This demonstrates a simple continuous integration workflow using GitHub.
