@@ -648,7 +648,34 @@ header h1 {
     flex-basis: 100%;
   }
 }
+.recommendation-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 16px 0 8px;
+}
 
+.recommendation-filters input,
+.recommendation-filters select {
+  flex: 1;
+  min-width: 180px;
+  padding: 12px;
+  border: 1px solid #354462;
+  border-radius: 9px;
+  background: #111a2d;
+  color: #eef2ff;
+  font: inherit;
+}
+
+.recommendation-filters input:focus,
+.recommendation-filters select:focus {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+#filterCount {
+  margin-bottom: 10px;
+}
 </style>
 </head>
 <body>
@@ -727,12 +754,26 @@ header h1 {
   </section>
 
   
- <section class="panel">
-   <h3>🧠 Smart Cleanup Recommendations</h3>
-   <p class="muted">
-     Files are ranked using duplicate detection and file size.
-     Review recommendations before making any changes.
-   </p>
+  <section class="panel">
+    <h3>🧠 Smart Cleanup Recommendations</h3>
+    <p class="muted">
+      Files are ranked using duplicate detection and file size.
+      Review recommendations before making any changes.
+    </p>
+    <div class="recommendation-filters">
+    <input
+      id="recommendationSearch"
+      type="search"
+      placeholder="🔎 Search files by name..."
+      aria-label="Search recommendations by filename"
+    >
+
+    <select id="recommendationType" aria-label="Filter by file type">
+      <option value="all">All file types</option>
+    </select>
+   </div>
+
+   <p id="filterCount" class="muted" aria-live="polite"></p>
    <div id="recommendationList" class="muted">
      Scan files to generate recommendations.
    </div>
@@ -753,6 +794,7 @@ header h1 {
 <script>
 const $ = id => document.getElementById(id);
 let report = [];
+let allRecommendations = [];
 
 function bytes(n) {
   if (!n) return "0 B";
@@ -770,6 +812,34 @@ function escapeHTML(s) {
 function ext(name) {
   const i=name.lastIndexOf(".");
   return i>0?name.slice(i+1).toLowerCase():"No extension";
+}
+function renderRecommendations() {
+  const search = $("recommendationSearch").value.trim().toLowerCase();
+  const selectedType = $("recommendationType").value;
+
+  const filtered = allRecommendations.filter(file => {
+    const matchesName = file.name.toLowerCase().includes(search);
+    const matchesType =
+      selectedType === "all" || ext(file.name) === selectedType;
+
+    return matchesName && matchesType;
+  });
+
+  $("filterCount").textContent =
+    `Showing ${filtered.length} of ${allRecommendations.length} files`;
+
+  $("recommendationList").innerHTML = filtered.length
+    ? filtered.map(file => `
+        <div class="item" style="border-left:5px solid ${file.color}">
+          <b>${escapeHTML(file.name)}</b>
+          <span class="tag">${file.priority}</span>
+          <div style="clear:both"></div>
+          <small>Score: ${file.score}/100 · Size: ${bytes(file.size)}</small>
+          <small>${escapeHTML(file.reasons)}</small>
+          <small><b>Suggested action:</b> ${escapeHTML(file.action)}</small>
+        </div>
+      `).join("")
+    : "No matching files found. Try a different search or file type.";
 }
 
 async function hashFile(file) {
@@ -902,6 +972,17 @@ action: isDuplicate
 
   // Show the highest-scoring files first.
   recommendations.sort((a, b) => b.score - a.score);
+  allRecommendations = recommendations;
+
+const typeSelect = $("recommendationType");
+typeSelect.innerHTML = '<option value="all">All file types</option>';
+
+[...new Set(files.map(file => ext(file.name)))].sort().forEach(type => {
+  const option = document.createElement("option");
+  option.value = type;
+  option.textContent = type;
+  typeSelect.appendChild(option);
+});
   
   // Update the cleanup priority dashboard.
   const topScore = recommendations.length
@@ -923,19 +1004,7 @@ action: isDuplicate
   $("insightSavings").textContent = bytes(saved);
   $("insightDuplicates").textContent = duplicateCopies;
 
-
-  $("recommendationList").innerHTML = recommendations.length
-    ? recommendations.map(file =>
-      `<div class="item" style="border-left:5px solid ${file.color}">
-        <b>${escapeHTML(file.name)}</b>
-        <span class="tag">${file.priority}</span>
-        <div style="clear:both"></div>
-        <small>Score: ${file.score}/100 · Size: ${bytes(file.size)}</small>
-        <small>${escapeHTML(file.reasons)}</small>
-        <small><b>Suggested action:</b> ${escapeHTML(file.action)}</small>
-      </div>`
-    ).join("")
-    : "No files found.";
+renderRecommendations();
 
   const large = [...files]
     .sort((a, b) => b.size - a.size)
@@ -988,6 +1057,9 @@ $("demo").addEventListener("click",()=>{
   scan(files);
 });
 
+$("recommendationSearch").addEventListener("input", renderRecommendations);
+$("recommendationType").addEventListener("change", renderRecommendations);
+
 $("reset").addEventListener("click",()=>{
   $("folder").value="";
   $("total").textContent="0";
@@ -1001,7 +1073,14 @@ $("reset").addEventListener("click",()=>{
   $("status").textContent="Ready to scan.";
   $("export").disabled=true;
   report=[];
-});
+  allRecommendations = [];
+  $("recommendationSearch").value = "";
+  $("recommendationType").innerHTML =
+    '<option value="all">All file types</option>';
+  $("filterCount").textContent = "";
+  $("recommendationList").textContent =
+    "Scan files to generate recommendations.";
+  });
 
 $("export").addEventListener("click",()=>{
   const rows=[["Name","Path","Size in bytes","Extension"],
